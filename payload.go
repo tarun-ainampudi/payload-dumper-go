@@ -8,11 +8,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/valyala/gozstd"
 	"io"
 	"os"
 	"sort"
 	"sync"
-	"github.com/valyala/gozstd"
 
 	humanize "github.com/dustin/go-humanize"
 	xz "github.com/spencercw/go-xz"

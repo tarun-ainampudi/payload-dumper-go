@@ -53,7 +53,7 @@ func main() {
 		extractRecovery bool
 		outputDirectory string
 		concurrency     int
-		flash			bool
+		flash           bool
 	)
 
 	flag.IntVar(&concurrency, "c", runtime.NumCPU()/2, "Number of multiple workers to extract (shorthand)")
@@ -101,7 +101,7 @@ func main() {
 		return
 	}
 
-	if extractRecovery{
+	if extractRecovery {
 		partitions += "boot,dtbo,vendor_boot"
 	}
 
@@ -130,7 +130,7 @@ func main() {
 		}
 	}
 
-	if flash{
+	if flash {
 		flash_handler(targetDirectory)
 	}
 }
