@@ -50,18 +50,24 @@ func main() {
 	var (
 		list            bool
 		partitions      string
+		extractRecovery bool
 		outputDirectory string
 		concurrency     int
+		flash			bool
 	)
 
-	flag.IntVar(&concurrency, "c", 4, "Number of multiple workers to extract (shorthand)")
-	flag.IntVar(&concurrency, "concurrency", 4, "Number of multiple workers to extract")
+	flag.IntVar(&concurrency, "c", runtime.NumCPU()/2, "Number of multiple workers to extract (shorthand)")
+	flag.IntVar(&concurrency, "concurrency", runtime.NumCPU()/2, "Number of multiple workers to extract")
 	flag.BoolVar(&list, "l", false, "Show list of partitions in payload.bin (shorthand)")
 	flag.BoolVar(&list, "list", false, "Show list of partitions in payload.bin")
 	flag.StringVar(&outputDirectory, "o", "", "Set output directory (shorthand)")
 	flag.StringVar(&outputDirectory, "output", "", "Set output directory")
 	flag.StringVar(&partitions, "p", "", "Dump only selected partitions (comma-separated) (shorthand)")
 	flag.StringVar(&partitions, "partitions", "", "Dump only selected partitions (comma-separated)")
+	flag.BoolVar(&extractRecovery, "recovery", false, "Extract boot,dtbo and vendor_boot images")
+	flag.BoolVar(&extractRecovery, "r", false, "Extract boot,dtbo and vendor_boot images (shorthand)")
+	flag.BoolVar(&flash, "f", false, "Flash extracted images to the device on current active slot(shorthand)")
+	flag.BoolVar(&flash, "flash", false, "Flash extracted images to the device on current active slot")
 	flag.Parse()
 
 	if flag.NArg() == 0 {
@@ -95,6 +101,10 @@ func main() {
 		return
 	}
 
+	if extractRecovery{
+		partitions += "boot,dtbo,vendor_boot"
+	}
+
 	now := time.Now()
 
 	targetDirectory := outputDirectory
@@ -118,6 +128,10 @@ func main() {
 		if err := payload.ExtractAll(targetDirectory); err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	if flash{
+		flash_handler(targetDirectory)
 	}
 }
 
