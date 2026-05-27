@@ -9,61 +9,61 @@ import (
 	"strings"
 )
 
-type device struct {
+type Device struct {
 	serial string
 	status string
 }
 
-type flashable_partition struct {
+type FlashablePartition struct {
 	partition  string
-	image_path string
+	imagePath string
 }
 
-func check_fastboot() bool {
+func checkFastboot() bool {
 	_, err := exec.LookPath("fastboot")
 	return err == nil
 }
 
-func get_devices() ([]device, error) {
+func getFastbootDevices() ([]Device, error) {
 	cmd := exec.Command("fastboot", "devices")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
-	var devices []device
+	var devices []Device
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	for _, line := range lines {
 		fields := strings.Fields(line)
 		if len(fields) == 2 && fields[1] == "fastboot" {
-			devices = append(devices, device{serial: fields[0], status: fields[1]})
+			devices = append(devices, Device{serial: fields[0], status: fields[1]})
 		}
 	}
 	return devices, nil
 }
 
-func get_flashable_partitions(extracted_path string) ([]flashable_partition, error) {
-	images, err := os.ReadDir(extracted_path)
+func getFlashablePartitions(dirName string) ([]FlashablePartition, error) {
+	images, err := os.ReadDir(dirName)
 	if err != nil {
 		return nil, err
 	}
-	var flashable_partitions []flashable_partition
+	var flashablePartitions []FlashablePartition
 	for _, img := range images {
 		if strings.HasSuffix(img.Name(), ".img") {
-			flashable_partitions = append(
-				flashable_partitions,
-				flashable_partition{
+			flashablePartitions = append(
+				flashablePartitions,
+				FlashablePartition{
 					partition:  strings.TrimSuffix(img.Name(), ".img"),
-					image_path: filepath.Join(extracted_path, img.Name()),
+					imagePath: filepath.Join(dirName, img.Name()),
 				},
 			)
 		}
 	}
-	return flashable_partitions, nil
+	return flashablePartitions, nil
 }
 
-func flash_handler(extracted_path string) {
+func flashHandler(dirName string) {
 	fmt.Printf("Flashing extracted images to the device on current active slot\n")
-	devices, err := get_devices()
+	devices, err := getFastbootDevices()
 	if err != nil {
 		log.Fatalf("Failed to get connected devices in fastboot mode: %s\n", err)
 	}
@@ -76,21 +76,21 @@ func flash_handler(extracted_path string) {
 		fmt.Printf("Multiple devices detected. Please connect only one device in fastboot mode\n")
 		return
 	}
-	flashable_partitions, err := get_flashable_partitions(extracted_path)
+	flashablePartitions, err := getFlashablePartitions(dirName)
 	if err != nil {
 		log.Fatalf("Failed to get flashable partitions: %s\n", err)
 	}
-	for _, partition := range flashable_partitions {
-		fmt.Printf("Flashing %s to %s partition\n", partition.image_path, partition.partition)
-		err := flash_image(partition.image_path, partition.partition)
+	for _, partition := range flashablePartitions {
+		fmt.Printf("Flashing %s to %s partition\n", partition.imagePath, partition.partition)
+		err := flashImage(partition.imagePath, partition.partition)
 		if err != nil {
-			fmt.Printf("Failed to flash %s to %s partition: %s\n", partition.image_path, partition.partition, err)
+			fmt.Printf("Failed to flash %s to %s partition: %s\n", partition.imagePath, partition.partition, err)
 		}
 	}
 	fmt.Printf("Flashing completed successfully\n")
 }
 
-func flash_image(image_path string, partition string) error {
-	cmd := exec.Command("fastboot", "flash", partition, image_path)
+func flashImage(imagePath string, partition string) error {
+	cmd := exec.Command("fastboot", "flash", partition, imagePath)
 	return cmd.Run()
 }

@@ -10,6 +10,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"unicode"
+	"path/filepath"
 )
 
 func extractPayloadBin(filename string) string {
@@ -105,22 +107,21 @@ func main() {
 		partitions += "boot,dtbo,vendor_boot"
 	}
 
-	if flash && !check_fastboot() {
+	if flash && !checkFastboot() {
 		fmt.Printf("fastboot is not found in PATH, Try with out -f or --flash.\n")
 		return
 	}
 
-	now := time.Now()
-
 	targetDirectory := outputDirectory
 	if targetDirectory == "" {
-		targetDirectory = fmt.Sprintf("extracted_%d%02d%02d_%02d%02d%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+		targetDirectory = getDirName(filename)
 	}
 	if _, err := os.Stat(targetDirectory); os.IsNotExist(err) {
 		if err := os.Mkdir(targetDirectory, 0o755); err != nil {
 			log.Fatal("Failed to create target directory")
 		}
 	}
+	fmt.Printf("Output Directory: %s\n", targetDirectory)
 
 	payload.SetConcurrency(concurrency)
 	fmt.Printf("Number of workers: %d\n", payload.GetConcurrency())
@@ -136,7 +137,7 @@ func main() {
 	}
 
 	if flash {
-		flash_handler(targetDirectory)
+		flashHandler(targetDirectory)
 	}
 }
 
@@ -144,4 +145,28 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s [options] [inputfile]\n", os.Args[0])
 	flag.PrintDefaults()
 	os.Exit(2)
+}
+
+func getDirName(filename string) string {
+	now := time.Now().Unix()
+
+	base := filepath.Base(filename)
+	ext := filepath.Ext(base)
+	name := strings.TrimSuffix(base, ext)
+
+	if(ext == ".zip") {
+
+		parts := strings.FieldsFunc(name, func(r rune) bool {
+			return !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '.'
+		})
+
+		if len(parts) >= 2 {
+			return fmt.Sprintf("%s_%s_%d", parts[0], parts[1], now)
+		}
+
+		if len(parts) == 1 && parts[0] != "" {
+			return fmt.Sprintf("%s_%d", parts[0], now)
+		}
+	}
+	return fmt.Sprintf("extracted_%d", now)
 }
