@@ -7,11 +7,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 	"unicode"
-	"path/filepath"
 )
 
 func extractPayloadBin(filename string) string {
@@ -154,7 +154,7 @@ func getDirName(filename string) string {
 	ext := filepath.Ext(base)
 	name := strings.TrimSuffix(base, ext)
 
-	if(ext == ".zip") {
+	if ext == ".zip" {
 
 		parts := strings.FieldsFunc(name, func(r rune) bool {
 			return !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '.'

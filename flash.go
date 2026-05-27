@@ -15,7 +15,7 @@ type Device struct {
 }
 
 type FlashablePartition struct {
-	partition  string
+	partition string
 	imagePath string
 }
 
@@ -52,7 +52,7 @@ func getFlashablePartitions(dirName string) ([]FlashablePartition, error) {
 			flashablePartitions = append(
 				flashablePartitions,
 				FlashablePartition{
-					partition:  strings.TrimSuffix(img.Name(), ".img"),
+					partition: strings.TrimSuffix(img.Name(), ".img"),
 					imagePath: filepath.Join(dirName, img.Name()),
 				},
 			)
