@@ -105,6 +105,11 @@ func main() {
 		partitions += "boot,dtbo,vendor_boot"
 	}
 
+	if flash && !check_fastboot() {
+		fmt.Printf("fastboot is not found in PATH, Try with out -f or --flash.\n")
+		return
+	}
+
 	now := time.Now()
 
 	targetDirectory := outputDirectory

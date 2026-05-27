@@ -63,10 +63,6 @@ func get_flashable_partitions(extracted_path string) ([]flashable_partition, err
 
 func flash_handler(extracted_path string) {
 	fmt.Printf("Flashing extracted images to the device on current active slot\n")
-	if !check_fastboot() {
-		fmt.Printf("fastboot is not found in PATH\n")
-		return
-	}
 	devices, err := get_devices()
 	if err != nil {
 		log.Fatalf("Failed to get connected devices in fastboot mode: %s\n", err)
