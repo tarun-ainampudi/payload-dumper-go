@@ -21,6 +21,9 @@ type FlashablePartition struct {
 
 func checkFastboot() bool {
 	_, err := exec.LookPath("fastboot")
+	if err != nil {
+		fmt.Printf("fastboot is not found in PATH\n")
+	}
 	return err == nil
 }
 
@@ -61,36 +64,52 @@ func getFlashablePartitions(dirName string) ([]FlashablePartition, error) {
 	return flashablePartitions, nil
 }
 
-func flashHandler(dirName string) {
-	fmt.Printf("Flashing extracted images to the device on current active slot\n")
+func checkDevicesInFastbootMode() (bool) {
+	if !checkFastboot() {
+		return false
+	}
 	devices, err := getFastbootDevices()
 	if err != nil {
 		log.Fatalf("Failed to get connected devices in fastboot mode: %s\n", err)
+		return false
 	}
 	if len(devices) == 0 {
 		fmt.Printf("No devices found in fastboot mode\n")
-		return
+		return false
 	}
 	if len(devices) > 1 {
 		//TODO : Handle multiple devices connected in fastboot mode with serial
 		fmt.Printf("Multiple devices detected. Please connect only one device in fastboot mode\n")
-		return
+		return false
+	}
+	return true
+}
+
+func flashHandler(dirName string) (bool) {
+	if !checkDevicesInFastbootMode() {
+		return false
 	}
 	flashablePartitions, err := getFlashablePartitions(dirName)
 	if err != nil {
 		log.Fatalf("Failed to get flashable partitions: %s\n", err)
+		return false
 	}
+	fmt.Printf("Flashing extracted images to the device on current active slot\n")
+	var status bool = true
 	for _, partition := range flashablePartitions {
 		fmt.Printf("Flashing %s to %s partition\n", partition.imagePath, partition.partition)
 		err := flashImage(partition.imagePath, partition.partition)
 		if err != nil {
+			status = false
 			fmt.Printf("Failed to flash %s to %s partition: %s\n", partition.imagePath, partition.partition, err)
 		}
 	}
-	fmt.Printf("Flashing completed successfully\n")
+	return status
 }
 
 func flashImage(imagePath string, partition string) error {
 	cmd := exec.Command("fastboot", "flash", partition, imagePath)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }

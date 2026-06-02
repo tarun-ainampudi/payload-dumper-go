@@ -80,6 +80,11 @@ func main() {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		log.Fatalf("File does not exist: %s\n", filename)
 	}
+	
+	if flash && !checkDevicesInFastbootMode() {
+		fmt.Printf("Try with out -f or --flash\n")
+		return
+	}
 
 	payloadBin := filename
 	if strings.HasSuffix(filename, ".zip") {
@@ -107,11 +112,6 @@ func main() {
 		partitions += "boot,dtbo,vendor_boot"
 	}
 
-	if flash && !checkFastboot() {
-		fmt.Printf("fastboot is not found in PATH, Try with out -f or --flash.\n")
-		return
-	}
-
 	targetDirectory := outputDirectory
 	if targetDirectory == "" {
 		targetDirectory = getDirName(filename)
@@ -136,8 +136,8 @@ func main() {
 		}
 	}
 
-	if flash {
-		flashHandler(targetDirectory)
+	if flash && flashHandler(targetDirectory) {
+		fmt.Printf("Flashing completed successfully\n")
 	}
 }
 

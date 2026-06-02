@@ -382,6 +382,10 @@ func (p *Payload) ExtractSelected(targetDirectory string, partitions []string) e
 	p.workerWG.Wait()
 	close(p.requests)
 
+	if p.progress != nil {
+		p.progress.Wait()
+	}
+
 	return nil
 }
 
