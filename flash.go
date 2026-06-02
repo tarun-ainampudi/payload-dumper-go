@@ -64,7 +64,7 @@ func getFlashablePartitions(dirName string) ([]FlashablePartition, error) {
 	return flashablePartitions, nil
 }
 
-func checkDevicesInFastbootMode() (bool) {
+func checkDevicesInFastbootMode() bool {
 	if !checkFastboot() {
 		return false
 	}
@@ -85,7 +85,7 @@ func checkDevicesInFastbootMode() (bool) {
 	return true
 }
 
-func flashHandler(dirName string) (bool) {
+func flashHandler(dirName string) bool {
 	if !checkDevicesInFastbootMode() {
 		return false
 	}

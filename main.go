@@ -80,7 +80,7 @@ func main() {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		log.Fatalf("File does not exist: %s\n", filename)
 	}
-	
+
 	if flash && !checkDevicesInFastbootMode() {
 		fmt.Printf("Try with out -f or --flash\n")
 		return
